@@ -16,9 +16,19 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+// Нажатие на напоминание открывает приложение.
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window' }).then((list) => (list[0] ? list[0].focus() : self.clients.openWindow('./'))),
+  );
+});
+
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET' || new URL(req.url).origin !== self.location.origin) return;
+  // Проверка новой версии просит свежий index.html — мимо кэша.
+  if (req.cache === 'no-store') return;
 
   if (req.mode === 'navigate') {
     event.respondWith(
